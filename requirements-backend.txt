@@ -1,0 +1,23 @@
+# Backend dependencies for Quản lý Xuất Nhập Cảnh
+# Core
+Django==5.2
+djangorestframework==3.16.0
+django-cors-headers==4.7.0
+django-filter==25.1
+drf-yasg==1.21.10
+
+# Database
+psycopg2==2.9.10
+
+# Security
+PyJWT==2.9.0
+
+# Date & Time
+python-dateutil==2.9.0.post0
+pytz==2025.2
+
+# Formatting
+PyYAML==6.0.2
+
+# Other utilities
+asgiref==3.8.1 

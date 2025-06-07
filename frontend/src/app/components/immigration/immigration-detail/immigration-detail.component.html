@@ -1,0 +1,151 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Chi tiết bản ghi xuất nhập cảnh</h1>
+    <div class="mt-2">
+      <a routerLink="/records" class="text-blue-500 hover:text-blue-700">
+        &larr; Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+
+  <!-- Record details -->
+  <div *ngIf="!loading && record" class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="flex justify-between items-center p-6 border-b">
+      <h2 class="text-2xl font-semibold text-gray-800">
+        {{ record.full_name }} 
+        <span class="ml-2 px-3 py-1 text-sm rounded-full" 
+          [ngClass]="{
+            'bg-green-100 text-green-800': record.entry_type === 'ENTRY',
+            'bg-blue-100 text-blue-800': record.entry_type === 'EXIT'
+          }">
+          {{ record.entry_type === 'ENTRY' ? 'Nhập cảnh' : 'Xuất cảnh' }}
+        </span>
+        <span class="ml-2 px-3 py-1 text-sm rounded-full"
+          [ngClass]="{
+            'bg-green-100 text-green-800': record.status === 'APPROVED',
+            'bg-red-100 text-red-800': record.status === 'REJECTED',
+            'bg-yellow-100 text-yellow-800': record.status === 'PENDING'
+          }">
+          {{ record.status === 'APPROVED' ? 'Đã duyệt' : (record.status === 'REJECTED' ? 'Từ chối' : 'Đang xử lý') }}
+        </span>
+      </h2>
+      <div>
+        <a [routerLink]="['/edit', record.id]" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
+          Chỉnh sửa
+        </a>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <!-- Thông tin cá nhân -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">Thông tin cá nhân</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-sm text-gray-500">Họ và tên</p>
+            <p class="text-base font-medium">{{ record.full_name }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Ngày sinh</p>
+            <p class="text-base font-medium">{{ record.date_of_birth | date:'dd/MM/yyyy' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Giới tính</p>
+            <p class="text-base font-medium">{{ record.gender === 'M' ? 'Nam' : (record.gender === 'F' ? 'Nữ' : 'Khác') }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Quốc tịch</p>
+            <p class="text-base font-medium">{{ record.nationality }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Số hộ chiếu</p>
+            <p class="text-base font-medium">{{ record.passport_number }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Ngày hết hạn hộ chiếu</p>
+            <p class="text-base font-medium">{{ record.passport_expiry_date | date:'dd/MM/yyyy' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thông tin xuất/nhập cảnh -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">Thông tin xuất/nhập cảnh</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-sm text-gray-500">Loại cửa khẩu</p>
+            <p class="text-base font-medium">{{ record.entry_type === 'ENTRY' ? 'Nhập cảnh' : 'Xuất cảnh' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Thời gian xuất/nhập cảnh</p>
+            <p class="text-base font-medium">{{ record.date_of_entry_exit | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Mục đích</p>
+            <p class="text-base font-medium">{{ 
+              record.purpose === 'TOURISM' ? 'Du lịch' : 
+              (record.purpose === 'BUSINESS' ? 'Công việc' : 
+              (record.purpose === 'STUDY' ? 'Học tập' : 
+              (record.purpose === 'VISIT' ? 'Thăm thân' : 
+              (record.purpose === 'DIPLOMATIC' ? 'Ngoại giao' : 'Khác')))) 
+            }}</p>
+          </div>
+          <div *ngIf="record.purpose_detail">
+            <p class="text-sm text-gray-500">Chi tiết mục đích</p>
+            <p class="text-base font-medium">{{ record.purpose_detail }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thông tin chuyến bay -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">Thông tin chuyến bay</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-sm text-gray-500">Số hiệu chuyến bay</p>
+            <p class="text-base font-medium">{{ record.flight_number }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Hãng hàng không</p>
+            <p class="text-base font-medium">{{ record.airline }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thông tin bổ sung -->
+      <div *ngIf="record.visa_number || record.address_in_country || record.contact_phone">
+        <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">Thông tin bổ sung</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div *ngIf="record.visa_number">
+            <p class="text-sm text-gray-500">Số thị thực</p>
+            <p class="text-base font-medium">{{ record.visa_number }}</p>
+          </div>
+          <div *ngIf="record.contact_phone">
+            <p class="text-sm text-gray-500">Số điện thoại liên hệ</p>
+            <p class="text-base font-medium">{{ record.contact_phone }}</p>
+          </div>
+          <div *ngIf="record.address_in_country" class="md:col-span-2">
+            <p class="text-sm text-gray-500">Địa chỉ lưu trú</p>
+            <p class="text-base font-medium">{{ record.address_in_country }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thông tin thời gian -->
+      <div class="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+        <p>Tạo lúc: {{ record.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p>Cập nhật lúc: {{ record.updated_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+    </div>
+  </div>
+</div> 
