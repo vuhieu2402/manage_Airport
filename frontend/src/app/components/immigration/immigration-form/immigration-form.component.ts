@@ -57,7 +57,6 @@ export class ImmigrationFormComponent implements OnInit {
       purpose_detail: [''],
       flight_number: ['', [Validators.required]],
       airline: ['', [Validators.required]],
-      date_of_entry_exit: ['', [Validators.required]],
       status: ['PENDING'],
       visa_number: [''],
       address_in_country: [''],
@@ -78,8 +77,7 @@ export class ImmigrationFormComponent implements OnInit {
             const formattedRecord = {
               ...record,
               date_of_birth: this.formatDateForInput(record.date_of_birth),
-              passport_expiry_date: this.formatDateForInput(record.passport_expiry_date),
-              date_of_entry_exit: this.formatDateForInput(record.date_of_entry_exit)
+              passport_expiry_date: this.formatDateForInput(record.passport_expiry_date)
             };
             this.recordForm.patchValue(formattedRecord);
             this.loading = false;
@@ -116,9 +114,6 @@ export class ImmigrationFormComponent implements OnInit {
     if (recordData.passport_expiry_date) {
       recordData.passport_expiry_date = this.formatDateForBackend(recordData.passport_expiry_date);
     }
-    if (recordData.date_of_entry_exit) {
-      recordData.date_of_entry_exit = this.formatDateTimeForBackend(recordData.date_of_entry_exit);
-    }
     
     console.log('Sending data to backend:', recordData);
 
@@ -152,15 +147,6 @@ export class ImmigrationFormComponent implements OnInit {
   formatDateForBackend(dateString: string): string {
     // Convert from YYYY-MM-DD to YYYY-MM-DD format (for backend)
     return dateString;
-  }
-  
-  formatDateTimeForBackend(dateTimeString: string): string {
-    // Convert from YYYY-MM-DDThh:mm to proper ISO format for backend
-    if (!dateTimeString) return '';
-    
-    // Ensure proper timezone format
-    const date = new Date(dateTimeString);
-    return date.toISOString();
   }
 
   getErrorMessage(error: any): string {

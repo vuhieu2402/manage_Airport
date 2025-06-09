@@ -109,7 +109,7 @@
   <!-- Pagination -->
   <div *ngIf="!loading && totalPages > 0" class="flex justify-between items-center mt-6">
     <div class="text-gray-600">
-      Hiển thị {{ (currentPage - 1) * 10 + 1 }} đến {{ Math.min(currentPage * 10, totalRecords) }} của {{ totalRecords }} bản ghi
+      Hiển thị {{ (currentPage - 1) * 5 + 1 }} đến {{ Math.min(currentPage * 5, totalRecords) }} của {{ totalRecords }} bản ghi
     </div>
     <div class="flex space-x-2">
       <button 

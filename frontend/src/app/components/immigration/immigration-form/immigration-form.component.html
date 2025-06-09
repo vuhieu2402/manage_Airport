@@ -68,10 +68,6 @@
               <input type="radio" formControlName="gender" value="F" class="form-radio h-4 w-4 text-blue-600">
               <span class="ml-2">Nữ</span>
             </label>
-            <label class="inline-flex items-center">
-              <input type="radio" formControlName="gender" value="O" class="form-radio h-4 w-4 text-blue-600">
-              <span class="ml-2">Khác</span>
-            </label>
           </div>
           <div *ngIf="submitted && recordForm.controls['gender'].errors" class="text-red-500 text-sm mt-1">
             Vui lòng chọn giới tính
@@ -149,21 +145,7 @@
           </div>
         </div>
 
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="date_of_entry_exit">
-            Thời gian xuất/nhập cảnh <span class="text-red-500">*</span>
-          </label>
-          <input 
-            type="datetime-local" 
-            formControlName="date_of_entry_exit"
-            id="date_of_entry_exit"
-            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [ngClass]="{'border-red-500': submitted && recordForm.controls['date_of_entry_exit'].errors}"
-          >
-          <div *ngIf="submitted && recordForm.controls['date_of_entry_exit'].errors" class="text-red-500 text-sm mt-1">
-            Vui lòng nhập thời gian xuất/nhập cảnh
-          </div>
-        </div>
+
 
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="purpose">
@@ -183,14 +165,14 @@
           </div>
         </div>
 
-        <div class="mb-4">
+        <div class="mb-4 col-span-2">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="purpose_detail">
             Chi tiết mục đích
           </label>
           <textarea
             formControlName="purpose_detail"
             id="purpose_detail"
-            rows="3"
+            rows="5"
             class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
         </div>

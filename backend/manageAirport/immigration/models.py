@@ -28,7 +28,7 @@ class ImmigrationRecord(models.Model):
     date_of_birth = models.DateField(verbose_name="Ngày sinh")
     gender = models.CharField(
         max_length=1,
-        choices=[('M', 'Nam'), ('F', 'Nữ'), ('O', 'Khác')],
+        choices=[('M', 'Nam'), ('F', 'Nữ')],
         verbose_name="Giới tính"
     )
     nationality = models.CharField(max_length=100, verbose_name="Quốc tịch")
@@ -53,7 +53,7 @@ class ImmigrationRecord(models.Model):
     airline = models.CharField(max_length=100, verbose_name="Hãng hàng không")
     
     # Thông tin thời gian
-    date_of_entry_exit = models.DateTimeField(verbose_name="Thời gian xuất/nhập cảnh")
+    date_of_entry_exit = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian xuất/nhập cảnh")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tạo bản ghi")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Thời gian cập nhật")
     

@@ -34,7 +34,7 @@ export class ImmigrationListComponent implements OnInit {
         next: (response: ImmigrationResponse) => {
           this.records = response.results;
           this.totalRecords = response.count;
-          this.totalPages = Math.ceil(response.count / 10); // 10 là số bản ghi mỗi trang
+          this.totalPages = Math.ceil(response.count / 5); // 5 là số bản ghi mỗi trang
           this.loading = false;
         },
         error: (err) => {
