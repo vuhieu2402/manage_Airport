@@ -78,13 +78,48 @@
           <label class="block text-gray-700 text-sm font-bold mb-2" for="nationality">
             Quốc tịch <span class="text-red-500">*</span>
           </label>
-          <input 
-            type="text" 
-            formControlName="nationality"
-            id="nationality"
-            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [ngClass]="{'border-red-500': submitted && recordForm.controls['nationality'].errors}"
-          >
+          
+          <!-- Dropdown cho việc chọn quốc tịch -->
+          <div *ngIf="!customNationality">
+            <div class="flex items-center">
+              <select
+                id="nationality_select"
+                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                (change)="onNationalityChange($event)"
+                [ngClass]="{'border-red-500': submitted && recordForm.controls['nationality'].errors}"
+              >
+                <option value="">-- Chọn quốc tịch --</option>
+                <option *ngFor="let option of nationalityOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <button 
+                type="button" 
+                class="ml-2 px-2 py-2 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg" 
+                (click)="customNationality = true">
+                ✏️
+              </button>
+            </div>
+          </div>
+          
+          <!-- Input cho việc nhập tay quốc tịch -->
+          <div *ngIf="customNationality" class="mt-2">
+            <div class="flex items-center">
+              <input 
+                type="text" 
+                formControlName="nationality"
+                id="nationality"
+                placeholder="Nhập quốc tịch"
+                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': submitted && recordForm.controls['nationality'].errors}"
+              >
+              <button 
+                type="button" 
+                class="ml-2 px-2 py-2 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg" 
+                (click)="customNationality = false">
+                ←
+              </button>
+            </div>
+          </div>
+          
           <div *ngIf="submitted && recordForm.controls['nationality'].errors" class="text-red-500 text-sm mt-1">
             Vui lòng nhập quốc tịch
           </div>

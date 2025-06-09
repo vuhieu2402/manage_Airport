@@ -18,6 +18,7 @@ export class ImmigrationFormComponent implements OnInit {
   loading = false;
   submitted = false;
   errorMessage = '';
+  customNationality = false;
 
   entryTypeOptions = [
     { value: 'ENTRY', label: 'Nhập cảnh' },
@@ -37,6 +38,26 @@ export class ImmigrationFormComponent implements OnInit {
     { value: 'PENDING', label: 'Đang xử lý' },
     { value: 'APPROVED', label: 'Đã duyệt' },
     { value: 'REJECTED', label: 'Từ chối' }
+  ];
+
+  nationalityOptions = [
+    { value: 'Việt Nam', label: 'Việt Nam' },
+    { value: 'Trung Quốc', label: 'Trung Quốc' },
+    { value: 'Hàn Quốc', label: 'Hàn Quốc' },
+    { value: 'Nhật Bản', label: 'Nhật Bản' },
+    { value: 'Thái Lan', label: 'Thái Lan' },
+    { value: 'Singapore', label: 'Singapore' },
+    { value: 'Malaysia', label: 'Malaysia' },
+    { value: 'Indonesia', label: 'Indonesia' },
+    { value: 'Philippines', label: 'Philippines' },
+    { value: 'Mỹ', label: 'Mỹ' },
+    { value: 'Anh', label: 'Anh' },
+    { value: 'Pháp', label: 'Pháp' },
+    { value: 'Đức', label: 'Đức' },
+    { value: 'Nga', label: 'Nga' },
+    { value: 'Úc', label: 'Úc' },
+    { value: 'Canada', label: 'Canada' },
+    { value: 'OTHER', label: 'Khác' },
   ];
 
   constructor(
@@ -80,6 +101,15 @@ export class ImmigrationFormComponent implements OnInit {
               passport_expiry_date: this.formatDateForInput(record.passport_expiry_date)
             };
             this.recordForm.patchValue(formattedRecord);
+            
+            // Kiểm tra xem quốc tịch có trong danh sách không
+            const foundNationality = this.nationalityOptions.find(
+              option => option.value === record.nationality
+            );
+            if (!foundNationality && record.nationality) {
+              this.customNationality = true;
+            }
+            
             this.loading = false;
           },
           error: (error) => {
@@ -168,5 +198,20 @@ export class ImmigrationFormComponent implements OnInit {
     }
     
     return 'Không thể tạo bản ghi mới. Vui lòng thử lại sau.';
+  }
+
+  onNationalityChange(event: any): void {
+    const value = event.target.value;
+    if (value === 'OTHER') {
+      this.customNationality = true;
+      this.recordForm.patchValue({
+        nationality: ''
+      });
+    } else if (value) {
+      // Cập nhật giá trị quốc tịch vào form
+      this.recordForm.patchValue({
+        nationality: value
+      });
+    }
   }
 }
