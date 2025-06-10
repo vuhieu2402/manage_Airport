@@ -54,38 +54,40 @@ export interface ImmigrationStatistics {
   providedIn: 'root'
 })
 export class ImmigrationService {
-  private apiUrl = 'http://127.0.0.1:8000/immigration/api/records/';
+  private apiUrl = environment.apiUrl;
   
   constructor(private http: HttpClient) { }
   
   getRecords(page: number = 1, search: string = ''): Observable<ImmigrationResponse> {
-    let params = new HttpParams()
-      .set('page', page.toString());
-      
-    if (search) {
-      params = params.set('search', search);
-    }
+    console.log('Service getRecords called with:', { page, search });
     
-    return this.http.get<ImmigrationResponse>(this.apiUrl, { params });
+    const body = {
+      page: page,
+      search: search,
+      filters: {}
+    };
+    
+
+    return this.http.post<ImmigrationResponse>(`${this.apiUrl}/list/`, body);
   }
   
   getRecordById(id: number): Observable<ImmigrationRecord> {
-    return this.http.get<ImmigrationRecord>(`${this.apiUrl}${id}/`);
+    return this.http.post<ImmigrationRecord>(`${this.apiUrl}/detail/`, { id });
   }
   
   createRecord(record: Partial<ImmigrationRecord>): Observable<ImmigrationRecord> {
-    return this.http.post<ImmigrationRecord>(this.apiUrl, record);
+    return this.http.post<ImmigrationRecord>(`${this.apiUrl}/create/`, record);
   }
   
   updateRecord(id: number, record: Partial<ImmigrationRecord>): Observable<ImmigrationRecord> {
-    return this.http.put<ImmigrationRecord>(`${this.apiUrl}${id}/`, record);
+    return this.http.post<ImmigrationRecord>(`${this.apiUrl}/update/`, { ...record, id });
   }
   
   deleteRecord(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}${id}/`);
+    return this.http.post(`${this.apiUrl}/delete/`, { id });
   }
   
   getStatistics(): Observable<ImmigrationStatistics> {
-    return this.http.get<ImmigrationStatistics>(`${this.apiUrl}statistics/`);
+    return this.http.post<ImmigrationStatistics>(`${this.apiUrl}/statistics/`, {});
   }
 }
