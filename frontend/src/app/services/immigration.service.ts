@@ -59,7 +59,7 @@ export class ImmigrationService {
   constructor(private http: HttpClient) { }
   
   getRecords(page: number = 1, search: string = ''): Observable<ImmigrationResponse> {
-    console.log('Service getRecords called with:', { page, search });
+
     
     const body = {
       page: page,

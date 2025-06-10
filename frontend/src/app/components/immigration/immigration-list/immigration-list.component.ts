@@ -28,23 +28,23 @@ export class ImmigrationListComponent implements OnInit {
   }
 
   loadRecords(): void {
-    console.log('Loading records for page:', this.currentPage);
+    // console.log('Loading records for page:', this.currentPage);
     this.loading = true;
     this.error = '';
 
     this.immigrationService.getRecords(this.currentPage, this.searchTerm)
       .subscribe({
         next: (response: ImmigrationResponse) => {
-          console.log('Received response:', response);
+          // console.log('Received response:', response);
           this.records = response.results;
           this.totalRecords = response.count;
           this.totalPages = Math.ceil(response.count / 5); // 5 là số bản ghi mỗi trang
-          console.log('Updated state:', {
-            recordsCount: this.records.length,
-            totalRecords: this.totalRecords,
-            totalPages: this.totalPages,
-            currentPage: this.currentPage
-          });
+          // console.log('Updated state:', {
+          //   recordsCount: this.records.length,
+          //   totalRecords: this.totalRecords,
+          //   totalPages: this.totalPages,
+          //   currentPage: this.currentPage
+          // });
           this.loading = false;
         },
         error: (err) => {
@@ -56,25 +56,25 @@ export class ImmigrationListComponent implements OnInit {
   }
 
   search(): void {
-    console.log('Searching with term:', this.searchTerm);
+    // console.log('Searching with term:', this.searchTerm);
     this.currentPage = 1; // Reset về trang đầu tiên khi tìm kiếm
     this.loadRecords();
   }
 
   nextPage(): void {
-    console.log('Attempting to go to next page. Current:', this.currentPage, 'Total:', this.totalPages);
+    // console.log('Attempting to go to next page. Current:', this.currentPage, 'Total:', this.totalPages);
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      console.log('Moving to page:', this.currentPage);
+      // console.log('Moving to page:', this.currentPage);
       this.loadRecords();
     }
   }
 
   prevPage(): void {
-    console.log('Attempting to go to previous page. Current:', this.currentPage);
+    // console.log('Attempting to go to previous page. Current:', this.currentPage);
     if (this.currentPage > 1) {
       this.currentPage--;
-      console.log('Moving to page:', this.currentPage);
+      // console.log('Moving to page:', this.currentPage);
       this.loadRecords();
     }
   }
@@ -92,7 +92,7 @@ export class ImmigrationListComponent implements OnInit {
             this.loadRecords(); // Tải lại danh sách sau khi xóa
           },
           error: (error) => {
-            console.error('Error deleting record:', error);
+            // console.error('Error deleting record:', error);
             this.error = 'Không thể xóa bản ghi. Vui lòng thử lại sau.';
           }
         });

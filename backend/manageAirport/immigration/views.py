@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets, filters, permissions
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,78 +11,175 @@ from .serializers import (
     ImmigrationRecordDetailSerializer,
     ImmigrationRecordCreateSerializer
 )
+from rest_framework.pagination import PageNumberPagination
+import logging
 
 class ImmigrationRecordViewSet(viewsets.ModelViewSet):
     """
     API endpoints để quản lý bản ghi xuất nhập cảnh
     
-    Cung cấp CRUD đầy đủ (Create, Read, Update, Delete) cho bản ghi xuất nhập cảnh sân bay
+
     """
     queryset = ImmigrationRecord.objects.all().order_by('-date_of_entry_exit')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['entry_type', 'purpose', 'status', 'nationality']
     search_fields = ['full_name', 'passport_number', 'visa_number', 'flight_number']
     ordering_fields = ['date_of_entry_exit', 'full_name', 'status']
+    http_method_names = ['post']  # Chỉ cho phép phương thức POST
     
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list_records':
             return ImmigrationRecordListSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ['create', 'update_record', 'partial_update_record']:
             return ImmigrationRecordCreateSerializer
         return ImmigrationRecordDetailSerializer
-    
+
     @swagger_auto_schema(
-        operation_summary="Tạo bản ghi xuất nhập cảnh mới",
-        operation_description="Tạo một bản ghi mới với thông tin xuất nhập cảnh"
-    )
-    def create(self, request, *args, **kwargs):
-        """Tạo bản ghi xuất nhập cảnh mới"""
-        return super().create(request, *args, **kwargs)
-    
-    @swagger_auto_schema(
-        operation_summary="Danh sách bản ghi xuất nhập cảnh",
+        operation_summary="Lấy danh sách bản ghi xuất nhập cảnh",
         operation_description="Trả về danh sách tất cả bản ghi xuất nhập cảnh với phân trang",
-        manual_parameters=[
-            openapi.Parameter('page', openapi.IN_QUERY, description="Số trang", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('search', openapi.IN_QUERY, description="Tìm kiếm theo tên, số hộ chiếu, chuyến bay...", type=openapi.TYPE_STRING),
-        ]
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'page': openapi.Schema(type=openapi.TYPE_INTEGER, description="Số trang"),
+                'search': openapi.Schema(type=openapi.TYPE_STRING, description="Tìm kiếm theo tên, số hộ chiếu, chuyến bay..."),
+                'filters': openapi.Schema(type=openapi.TYPE_OBJECT, description="Các điều kiện lọc")
+            }
+        )
     )
-    def list(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def list_records(self, request):
         """Danh sách tất cả bản ghi xuất nhập cảnh"""
-        return super().list(request, *args, **kwargs)
-    
+        logger = logging.getLogger(__name__)
+        
+        # Log request data
+        logger.info(f"Received request data: {request.data}")
+        
+        # Lấy tham số từ request.data
+        page = request.data.get('page', 1)
+        search = request.data.get('search', '')
+        filters = request.data.get('filters', {})
+        
+        logger.info(f"Processing request - Page: {page}, Search: {search}, Filters: {filters}")
+        
+        # Áp dụng bộ lọc
+        queryset = self.get_queryset()
+        logger.info(f"Initial queryset count: {queryset.count()}")
+        
+        # Áp dụng tìm kiếm nếu có
+        if search:
+            queryset = self.filter_queryset(queryset)
+            logger.info(f"After search filter, queryset count: {queryset.count()}")
+        
+        # Áp dụng các bộ lọc bổ sung
+        for field, value in filters.items():
+            if field in self.filterset_fields:
+                queryset = queryset.filter(**{field: value})
+        
+        logger.info(f"Final queryset count before pagination: {queryset.count()}")
+        
+        # Tạo paginator với kích thước trang cố định
+        class CustomPagination(PageNumberPagination):
+            page_size = 5
+            page_query_param = 'page'
+            
+            def get_page_number(self, request, paginator):
+                # Lấy số trang từ request.data thay vì query_params
+                page_number = request.data.get(self.page_query_param, 1)
+                try:
+                    page_number = int(page_number)
+                except (TypeError, ValueError):
+                    page_number = 1
+                return page_number
+        
+        try:
+            # Thực hiện phân trang
+            paginator = CustomPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            logger.info(f"Paginated queryset size: {len(paginated_queryset) if paginated_queryset else 0}")
+            
+            # Serialize dữ liệu
+            serializer = self.get_serializer(paginated_queryset, many=True)
+            
+            # Trả về response với thông tin phân trang
+            response = paginator.get_paginated_response(serializer.data)
+            logger.info(f"Response data count: {len(response.data['results'])}")
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error during pagination: {str(e)}")
+            return Response(
+                {"error": "Lỗi khi phân trang dữ liệu"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @swagger_auto_schema(
-        operation_summary="Chi tiết bản ghi xuất nhập cảnh",
-        operation_description="Trả về thông tin chi tiết của một bản ghi xuất nhập cảnh"
+        operation_summary="Xem chi tiết bản ghi xuất nhập cảnh",
+        operation_description="Trả về thông tin chi tiết của một bản ghi xuất nhập cảnh",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID của bản ghi cần xem")
+            },
+            required=['id']
+        )
     )
-    def retrieve(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def get_record(self, request):
         """Chi tiết một bản ghi xuất nhập cảnh"""
-        return super().retrieve(request, *args, **kwargs)
-    
+        try:
+            record = self.get_queryset().get(id=request.data.get('id'))
+            serializer = self.get_serializer(record)
+            return Response(serializer.data)
+        except ImmigrationRecord.DoesNotExist:
+            return Response(
+                {"error": "Không tìm thấy bản ghi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
     @swagger_auto_schema(
         operation_summary="Cập nhật bản ghi xuất nhập cảnh",
-        operation_description="Cập nhật thông tin của một bản ghi xuất nhập cảnh"
+        operation_description="Cập nhật thông tin của một bản ghi xuất nhập cảnh",
+        request_body=ImmigrationRecordCreateSerializer
     )
-    def update(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def update_record(self, request):
         """Cập nhật thông tin bản ghi xuất nhập cảnh"""
-        return super().update(request, *args, **kwargs)
-    
-    @swagger_auto_schema(
-        operation_summary="Cập nhật một phần bản ghi",
-        operation_description="Cập nhật một phần thông tin của bản ghi xuất nhập cảnh"
-    )
-    def partial_update(self, request, *args, **kwargs):
-        """Cập nhật một phần thông tin bản ghi xuất nhập cảnh"""
-        return super().partial_update(request, *args, **kwargs)
-    
+        try:
+            record = self.get_queryset().get(id=request.data.get('id'))
+            serializer = self.get_serializer(record, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except ImmigrationRecord.DoesNotExist:
+            return Response(
+                {"error": "Không tìm thấy bản ghi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
     @swagger_auto_schema(
         operation_summary="Xóa bản ghi xuất nhập cảnh",
-        operation_description="Xóa một bản ghi xuất nhập cảnh theo ID"
+        operation_description="Xóa một bản ghi xuất nhập cảnh theo ID",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID của bản ghi cần xóa")
+            },
+            required=['id']
+        )
     )
-    def destroy(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def delete_record(self, request):
         """Xóa bản ghi xuất nhập cảnh"""
-        return super().destroy(request, *args, **kwargs)
-    
+        try:
+            record = self.get_queryset().get(id=request.data.get('id'))
+            record.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ImmigrationRecord.DoesNotExist:
+            return Response(
+                {"error": "Không tìm thấy bản ghi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
     @swagger_auto_schema(
         operation_summary="Thống kê xuất nhập cảnh",
         operation_description="Trả về các thống kê về bản ghi xuất nhập cảnh",
@@ -107,7 +204,7 @@ class ImmigrationRecordViewSet(viewsets.ModelViewSet):
             )
         }
     )
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def statistics(self, request):
         """Thống kê số lượng xuất nhập cảnh"""
         total_records = ImmigrationRecord.objects.count()
